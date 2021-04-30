@@ -1,0 +1,4 @@
+rm -rf  /recommenders-addons/tensorflow_recommenders_addons/dynamic_embedding/core/_cuckoo_hashtable_ops.so
+rm -rf /recommenders-addons/tensorflow_recommenders_addons/embedding_variable/core/_ev_ops.so
+cp -f /recommenders-addons/bazel-bin/tensorflow_recommenders_addons/dynamic_embedding/core/_cuckoo_hashtable_ops.so /recommenders-addons/tensorflow_recommenders_addons/dynamic_embedding/core/_cuckoo_hashtable_ops.so
+cp -f /recommenders-addons/bazel-bin/tensorflow_recommenders_addons/embedding_variable/core/_ev_ops.so /recommenders-addons/tensorflow_recommenders_addons/embedding_variable/core/_ev_ops.so
