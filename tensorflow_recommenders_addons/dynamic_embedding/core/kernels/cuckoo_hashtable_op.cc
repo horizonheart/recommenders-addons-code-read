@@ -251,7 +251,7 @@ class CuckooHashTableOfTensors final : public LookupInterface {
 
   TensorShape value_shape() const override { return value_shape_; }
 
-  // 计算使用的内存
+  // todo 计算使用的内存
   int64 MemoryUsed() const override {
     int64 ret = 0;
     ret = (int64)table_->size();

@@ -73,6 +73,8 @@ class HashTableOp : public OpKernel {
             container->Unref();
             return ctx->status();
           }
+          int a = container->MemoryUsed() + table_handle_.AllocatedBytes();
+          LOG(INFO) << a;
           if (ctx->track_allocations()) {
             ctx->record_persistent_memory_allocation(
                 container->MemoryUsed() + table_handle_.AllocatedBytes());

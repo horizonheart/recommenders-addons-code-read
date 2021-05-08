@@ -116,7 +116,7 @@ class GraphKeys(object):
   # Trainable dynamic embedding variables.
   TRAINABLE_DYNAMIC_EMBEDDING_VARIABLES = "trainable_dynamic_embedding_variables"
 
-# 定义变量的类型
+# todo 定义变量的类型
 class Variable(trackable.TrackableResource):
   """
     A Distributed version of HashTable(reference from lookup_ops.MutableHashTable)
@@ -489,7 +489,7 @@ class Variable(trackable.TrackableResource):
         saveables[saveable.keywords["name"]] = saveable
     return saveables
 
-# 获取变量
+# todo 获取变量
 @tf_export("dynamic_embedding.get_variable")
 def get_variable(
     name,  # unique

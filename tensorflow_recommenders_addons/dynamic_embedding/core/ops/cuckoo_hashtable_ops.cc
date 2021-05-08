@@ -210,6 +210,7 @@ Status CuckooHashTableShape(InferenceContext* c, const ShapeHandle& key,
   c->set_output(0, c->Scalar());
 
   ShapeHandle key_s;
+  // 第二个参数是rank，取第几维的维度
   TF_RETURN_IF_ERROR(c->WithRankAtMost(key, 1, &key_s));
   // 获取key的类型
   DataType key_t;

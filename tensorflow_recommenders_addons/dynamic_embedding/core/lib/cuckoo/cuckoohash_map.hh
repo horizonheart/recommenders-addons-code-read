@@ -115,13 +115,13 @@ class cuckoohash_map {
         // buckets_类型是libcuckoo_bucket_container<Key, T, Allocator, partial_t, SLOT_PER_BUCKET>
         buckets_(reserve_calc(n), alloc), //libcuckoo_bucket_container<Key, T, Allocator, partial_t, SLOT_PER_BUCKET>
         old_buckets_(0, alloc),
-        all_locks_(get_allocator()), // allocator_type get_allocator()
+        all_locks_(alloc), // allocator_type get_allocator()
         num_remaining_lazy_rehash_locks_(0),
         minimum_load_factor_(LIBCUCKOO_DEFAULT_MINIMUM_LOAD_FACTOR),
         maximum_hashpower_(LIBCUCKOO_NO_MAXIMUM_HASHPOWER),
         max_num_worker_threads_(6) {
     all_locks_.emplace_back(std::min(bucket_count(), size_type(kMaxNumLocks)),
-                            spinlock(), get_allocator());
+                            spinlock(), alloc);
   }
 
   /**
@@ -355,6 +355,7 @@ class cuckoohash_map {
    *
    * @return the bucket count
    */
+  //todo 返回桶的数量
   size_type bucket_count() const { return buckets_.size(); }
 
   /**
@@ -369,6 +370,7 @@ class cuckoohash_map {
    *
    * @return number of elements in the table
    */
+  // todo 获取词表使用的大小
   size_type size() const {
     if (all_locks_.size() == 0) {
       return 0;
@@ -856,12 +858,14 @@ class cuckoohash_map {
     // 构造函数
     spinlock() : elem_counter_(0), is_migrated_(true) { lock_.clear(); }
 
+    // 拷贝构造函数
     spinlock(const spinlock &other)
         : elem_counter_(other.elem_counter()),
           is_migrated_(other.is_migrated()) {
       lock_.clear();
     }
 
+    // 赋值
     spinlock &operator=(const spinlock &other) {
       elem_counter() = other.elem_counter();
       is_migrated() = other.is_migrated();
@@ -897,6 +901,7 @@ class cuckoohash_map {
 
   using locks_t = std::vector<spinlock, rebind_alloc<spinlock>>;
 
+  // todo list里面存储的是vector的spinlock
   using all_locks_t = std::list<locks_t, rebind_alloc<locks_t>>;
 
   // Classes for managing locked buckets. By storing and moving around sets of
@@ -2069,6 +2074,7 @@ class cuckoohash_map {
 
   static constexpr size_type kMaxNumLocks = 1UL << 16;
 
+  // 返回list列表中的最后一个
   locks_t &get_current_locks() const { return all_locks_.back(); }
 
   // Get/set/decrement num remaining lazy rehash locks. If we reach 0 remaining
@@ -2129,6 +2135,8 @@ class cuckoohash_map {
   // modification must take place before a modification to the hashpower, so
   // that other threads can detect the change and adjust appropriately. Marked
   // mutable so that const methods can access and take locks.
+
+  //todo using locks_t = std::vector<spinlock, rebind_alloc<spinlock>>;
   //todo all_locks_t = std::list<locks_t, rebind_alloc<locks_t>>;
   mutable all_locks_t all_locks_;
 
