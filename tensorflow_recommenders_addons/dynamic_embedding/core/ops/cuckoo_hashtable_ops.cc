@@ -43,20 +43,30 @@ Status ScalarAndTwoElementVectorInputsAndScalarOutputs(InferenceContext* c) {
 
 }  // namespace
 
+// todo 验证表的资源接口
 Status ValidateTableResourceHandle(InferenceContext* c, ShapeHandle keys,
                                    const string& key_dtype_attr,
                                    const string& value_dtype_attr,
                                    bool is_lookup,
                                    ShapeAndType* output_shape_and_type) {
+  
+  // handle_data 存储了map的句柄
+  // Returns the inputs handle shapes and types, for the resource tensor output
   auto* handle_data = c->input_handle_shapes_and_types(0);
+
   if (handle_data == nullptr || handle_data->size() != 2) {
     output_shape_and_type->shape = c->UnknownShape();
     output_shape_and_type->dtype = DT_INVALID;
   } else {
+    // 获取key的类型
     const ShapeAndType& key_shape_and_type = (*handle_data)[0];
+    // 获取value的类型
     const ShapeAndType& value_shape_and_type = (*handle_data)[1];
     DataType key_dtype;
+    // 获取要传入的key的数据类型
     TF_RETURN_IF_ERROR(c->GetAttr(key_dtype_attr, &key_dtype));
+    
+    // todo 检查要获取的key和value的值
     if (key_shape_and_type.dtype != key_dtype) {
       return errors::InvalidArgument(
           "Trying to read value with wrong dtype. "
@@ -65,6 +75,7 @@ Status ValidateTableResourceHandle(InferenceContext* c, ShapeHandle keys,
           DataTypeString(key_dtype));
     }
     DataType value_dtype;
+    // 获取要传入的value的数据类型
     TF_RETURN_IF_ERROR(c->GetAttr(value_dtype_attr, &value_dtype));
     if (value_shape_and_type.dtype != value_dtype) {
       return errors::InvalidArgument(
@@ -73,11 +84,13 @@ Status ValidateTableResourceHandle(InferenceContext* c, ShapeHandle keys,
           DataTypeString(value_shape_and_type.dtype), " got ",
           DataTypeString(value_dtype));
     }
+
     output_shape_and_type->dtype = value_shape_and_type.dtype;
 
     if (is_lookup) {
       if (c->RankKnown(key_shape_and_type.shape) && c->RankKnown(keys)) {
         int keys_rank = c->Rank(keys);
+        // 获取矩阵是几维
         int key_suffix_rank = c->Rank(key_shape_and_type.shape);
         if (keys_rank < key_suffix_rank) {
           return errors::InvalidArgument(
@@ -87,6 +100,7 @@ Status ValidateTableResourceHandle(InferenceContext* c, ShapeHandle keys,
         }
         for (int d = 0; d < key_suffix_rank; d++) {
           // Ensure the suffix of keys match what's in the Table.
+          // 返回某一个维度
           DimensionHandle dim = c->Dim(key_shape_and_type.shape, d);
           TF_RETURN_IF_ERROR(
               c->ReplaceDim(keys, keys_rank - key_suffix_rank + d, dim, &keys));
@@ -101,9 +115,12 @@ Status ValidateTableResourceHandle(InferenceContext* c, ShapeHandle keys,
                                           value_shape_and_type.shape,
                                           &output_shape_and_type->shape));
       } else {
+        // 输出维度不清楚
         output_shape_and_type->shape = c->UnknownShape();
       }
     } else {
+      
+      // todo 结果concat到最后的参数里面
       TF_RETURN_IF_ERROR(c->Concatenate(keys, value_shape_and_type.shape,
                                         &output_shape_and_type->shape));
     }
@@ -166,6 +183,7 @@ REGISTER_OP("TFRA>CuckooHashTableSize")
     .Output("size: int64")
     .SetShapeFn(ScalarAndTwoElementVectorInputsAndScalarOutputs);
 
+// todo 注册导出表的接口
 REGISTER_OP("TFRA>CuckooHashTableExport")
     .Input("table_handle: resource")
     .Output("keys: Tkeys")
@@ -175,14 +193,18 @@ REGISTER_OP("TFRA>CuckooHashTableExport")
     .SetShapeFn([](InferenceContext* c) {
       ShapeHandle handle;
       TF_RETURN_IF_ERROR(c->WithRank(c->input(0), 0, &handle));
+      // Returns a shape with specified rank but unknown dims.
+      // 返回一个指定的rank 但是维度未知的向量
       ShapeHandle keys = c->UnknownShapeOfRank(1);
       ShapeAndType value_shape_and_type;
+      // 检查表的资源
       TF_RETURN_IF_ERROR(ValidateTableResourceHandle(
           c,
           /*keys=*/keys,
-          /*key_dtype_attr=*/"Tkeys",
+          /*key_dt
+          ype_attr=*/"Tkeys",
           /*value_dtype_attr=*/"Tvalues",
-          /*is_lookup=*/false, &value_shape_and_type));
+          /*is_lookup=*/true, &value_shape_and_type));
       c->set_output(0, keys);
       c->set_output(1, value_shape_and_type.shape);
       return Status::OK();
@@ -241,10 +263,13 @@ REGISTER_OP("TFRA>CuckooHashTableOfTensors")
     // 取输出信息，帮助判断给定的计算图是否合理．
     .SetShapeFn([](InferenceContext* c) {
       LOG(INFO) << "************************REGISTER_OP:CuckooHashTableOfTensors************************" ;
+      // Manages the partially known dimensions of a Tensor and their sizes.
       PartialTensorShape value_p;
       TF_RETURN_IF_ERROR(c->GetAttr("value_shape", &value_p));
       ShapeHandle value_s;
+      // Returns in <out> a new shape corresponding to <partial_shape>.
       TF_RETURN_IF_ERROR(c->MakeShapeFromPartialTensorShape(value_p, &value_s));
+      // c->Scalar() ：Returns a new shape of zero dimensions.
       return CuckooHashTableShape(c, /*key=*/c->Scalar(), /*value=*/value_s);
     });
 }  // namespace tensorflow

@@ -268,6 +268,7 @@ class CuckooHashTableOfTensors final : public LookupInterface {
 
 }  // namespace lookup
 
+// todo hash table的kernel
 class HashTableOpKernel : public OpKernel {
  public:
   explicit HashTableOpKernel(OpKernelConstruction* ctx)
@@ -413,6 +414,8 @@ REGISTER_KERNEL_BUILDER(Name("TFRA>CuckooHashTableSize").Device(DEVICE_CPU),
                         HashTableSizeOp);
 
 // Op that outputs tensors of all keys and all values.
+
+// todo 导出所有tensor的key和value的op
 class HashTableExportOp : public HashTableOpKernel {
  public:
   using HashTableOpKernel::HashTableOpKernel;
@@ -426,6 +429,7 @@ class HashTableExportOp : public HashTableOpKernel {
   }
 };
 
+// todo 注册导出模型的接口 tfra_cuckoo_hash_table_export
 REGISTER_KERNEL_BUILDER(Name("TFRA>CuckooHashTableExport").Device(DEVICE_CPU),
                         HashTableExportOp);
 

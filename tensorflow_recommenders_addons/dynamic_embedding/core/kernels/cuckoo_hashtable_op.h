@@ -98,7 +98,7 @@ class HashTableOp : public OpKernel {
     OP_REQUIRES_OK(ctx, CheckTableDataTypes(
                             *table, DataTypeToEnum<key_dtype>::v(),
                             DataTypeToEnum<value_dtype>::v(), cinfo_.name()));
-
+    // cinfo_.container():localhost cinfo_.name():table_10
     if (ctx->expected_output_dtype(0) == DT_RESOURCE) {
       if (!table_handle_set_) {
         auto h =

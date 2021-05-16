@@ -104,7 +104,7 @@ class CuckooHashTable(LookupInterface):
     # 创建词表的资源
     self._resource_handle = self._create_resource()
     if checkpoint:
-      _ = CuckooHashTable._Saveable(self, name)
+      _ = CuckooHashTable._Saveable(self, name) #保存表
       if not context.executing_eagerly():
         self.saveable = CuckooHashTable._Saveable(
             self,
@@ -255,6 +255,7 @@ class CuckooHashTable(LookupInterface):
             self.resource_handle, keys, values)
     return op
 
+  # 返回词表中相关的tensor
   def export(self, name=None):
     """Returns tensors of all keys and values in the table.
 
@@ -291,11 +292,13 @@ class CuckooHashTable(LookupInterface):
                 full_name=full_name,
             )
     }
-
+  
+  # 保存表的类
   class _Saveable(BaseSaverBuilder.SaveableObject):
     """SaveableObject implementation for CuckooHashTable."""
 
     def __init__(self, table, name, full_name=""):
+      # 获取table里面的tensors
       tensors = table.export()
       specs = [
           BaseSaverBuilder.SaveSpec(tensors[0], "", name + "-keys"),
